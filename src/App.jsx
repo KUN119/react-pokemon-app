@@ -1,0 +1,16 @@
+import React from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import MainPage from './pages/MainPage'
+import DetailPage from './pages/DetalPage'
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path='/' element={<MainPage />}></Route>
+        <Route path='/pokemon/:id' element={<DetailPage />}></Route>
+      </Routes>
+    </BrowserRouter>
+
+  )
+}
