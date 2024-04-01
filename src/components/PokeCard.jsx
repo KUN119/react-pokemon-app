@@ -14,7 +14,6 @@ const PokeCard = ({ url, name }) => {
         try {
             const response = await axios.get(url);
             const pokemonsData = formatPokemonData(response.data);
-            console.log(pokemonsData)
             setPokemon(pokemonsData);
         } catch (error) {
             console.error(error);
