@@ -1,6 +1,9 @@
-import React from 'react'
+interface TypeProps {
+    type: String;
+    damageValue?: string;
+}
 
-export default function Type({ type, damageValue }) {
+export default function Type({ type, damageValue }: TypeProps) {
     const bg = `bg-${type}`
     
     return (

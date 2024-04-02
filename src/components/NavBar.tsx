@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components'
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
+import { User, getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from 'firebase/auth';
 import app from '../firebase';
+import storage from '../utils/storage';
 
-const initialUserData = localStorage.getItem('userData') ?
-    JSON.parse(localStorage.getItem('userData')) : {};
+const initialUserData = storage.get<User>('userData');
 
 export default function NavBar() {
     const auth = getAuth(app);
@@ -13,7 +13,7 @@ export default function NavBar() {
 
     const [show, setShow] = useState(false); 
 
-    const [userData, setUserData] = useState(initialUserData);
+    const [userData, setUserData] = useState<User | null>(initialUserData);
 
     const { pathname } = useLocation();
     const navigate = useNavigate();
@@ -36,16 +36,15 @@ export default function NavBar() {
     const handleAuth = () => {
         signInWithPopup(auth, provider)
         .then(result => {
-            console.log(result)
             setUserData(result.user);
-            localStorage.setItem("userData", JSON.stringify(result.user));
+            storage.set('userData', result.user);
         })
         .catch(error => {
             console.log(error);
         })
     }
 
-    const listner = () => {
+    const listener = () => {
         if (window.scrollY > 50) {
             setShow(true);
         } else {
@@ -54,16 +53,17 @@ export default function NavBar() {
     }
 
     useEffect(() => {
-        window.addEventListener('scroll', listner);
+        window.addEventListener('scroll', listener);
         
         return () => {
-            window.removeEventListener('scroll', listner);
+            window.removeEventListener('scroll', listener);
         }
     }, [])
     
     const handleLogout = () => {
         signOut(auth).then(() => {
-            setUserData({});
+            localStorage.remove('userData');
+            setUserData(null);
         })
         .catch(error => {
             alert(error);
@@ -71,7 +71,7 @@ export default function NavBar() {
     }
 
     return (
-        <NavWrapper show={show ? 'true' : undefined}>
+        <NavWrapper $show={show}>
             <Logo>
                 <Image 
                     alt='poke logo'
@@ -86,10 +86,12 @@ export default function NavBar() {
                 </Login>
             ): 
                 <SignOut>
-                    <UserImg 
-                        src={userData.photoURL}
-                        alt='user photo'
-                    />
+                    {userData?.photoURL &&
+                        <UserImg 
+                            src={userData.photoURL}
+                            alt='user photo'
+                        />
+                    }
                     <Dropdown>
                         <span onClick={handleLogout}>Sign out</span>
                     </Dropdown>
@@ -102,7 +104,6 @@ export default function NavBar() {
 const UserImg = styled.img`
     border-radius: 50%;
     width: 100%;
-
 `
 
 const Dropdown = styled.div`
@@ -173,7 +174,7 @@ const NavWrapper = styled.nav`
     right: 0;
     height: 70px;
     display: flex;
-    background-color: ${props => props.show ? '#090b13' : 'transparent'};
+    background-color: ${props => props.$show ? '#090b13' : 'transparent'};
     justify-content: space-between;
     align-items: center;
     padding: 0 36px;
